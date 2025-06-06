@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #7f8c8d;
+        }
+        
+        .upload-area {
+            border: 2px dashed #bdc3c7;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+        
+        .upload-area.dragover {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+        
+        .upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .results {
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .info-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .info-section h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        .download-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .download-btn i {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Parser</h1>
+        <p>Upload your resume (PDF or DOCX) to automatically extract information</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept=".pdf,.docx">
+            <label for="fileInput" class="upload-label">
+                <span class="upload-icon"><i class="fas fa-file-upload"></i></span>
+                <span class="upload-text">Choose a file or drag it here</span>
+            </label>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+            <h2>Extracted Information</h2>
+            
+            <div class="info-section">
+                <h3>Personal Information</h3>
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" readonly>
+                </div>
+                
+            </div>
+            
+            <div class="info-section">
+                <h3>Education</h3>
+                <div class="form-group">
+                    <label for="education">Degrees & Institutions:</label>
+                    <textarea id="education" name="education" readonly></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="cgpa">CGPA/GPA:</label>
+                    <input type="text" id="cgpa" name="cgpa" readonly>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>Skills</h3>
+                <div class="form-group">
+                    <textarea id="skills" name="skills" readonly></textarea>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>Projects</h3>
+                <div class="form-group">
+                    <textarea id="projects" name="projects" readonly></textarea>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>Work Experience</h3>
+                <div class="form-group">
+                    <textarea id="experience" name="experience" readonly></textarea>
+                </div>
+            </div>
+            
+            <button class="download-btn" id="downloadBtn">
+                <i class="fas fa-download"></i> Download Extracted Data
+            </button>
+        </div>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing your resume...</p>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        // Handle drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileUpload();
+            }
+        });
+        
+        // Handle file selection
+        fileInput.addEventListener('change', handleFileUpload);
+        
+        // Handle download button
+        downloadBtn.addEventListener('click', downloadData);
+        
+        function handleFileUpload() {
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            // Check file type
+            const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a PDF or DOCX file.');
+                return;
+            }
+            
+            // Show loading
+            resultsDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            
+            // Upload file
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Populate form
+                    document.getElementById('name').value = data.name;
+                    document.getElementById('email').value = data.email;
+                    
+                    document.getElementById('cgpa').value = data.cgpa;
+                    document.getElementById('skills').value = data.skills;
+                    document.getElementById('education').value = data.education;
+                    document.getElementById('projects').value = data.projects;
+                    document.getElementById('experience').value = data.experience;
+                    
+                    // Show results
+                    resultsDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your file.');
+            })
+            .finally(() => {
+                loadingDiv.style.display = 'none';
+            });
+        }
+        
+        function downloadData() {
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                
+                cgpa: document.getElementById('cgpa').value,
+                skills: document.getElementById('skills').value,
+                education: document.getElementById('education').value,
+                projects: document.getElementById('projects').value,
+                experience: document.getElementById('experience').value
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resume_data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
